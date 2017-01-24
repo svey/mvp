@@ -1,7 +1,12 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
-var twilio = require('twilio');
+var sms = require('./send-sms.js');
+
+var accountSid = sms.accountSid;
+var authToken = sms.authToken;
+
+var client = require('twilio')(accountSid, authToken);
 
 var app = express();
 
@@ -11,11 +16,16 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
 app.post('/sms', function(request, response) {
-  var twilio = require('twilio');
-  var twiml = new twilio.TwimlResponse();
-  twiml.message('The Robots are coming! Head for the hills!');
-  response.writeHead(200, {'Content-Type': 'text/xml'});
-  response.end(twiml.toString());
+  console.log('request-body', request.body);
+  client.messages.create({ 
+    to: sms.userNumber, 
+    from: sms.twilioNumber, 
+    body: request.body.text,
+  }, function(err, message) { 
+    if(err) {
+      console.log(err.message);
+    }
+  });
 });
 
 
